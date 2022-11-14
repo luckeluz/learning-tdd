@@ -1,9 +1,6 @@
 from money import Money
 from bank import Bank
 
-import functools
-import operator
-
 
 class Portfolio:
     def __init__(self):
@@ -13,16 +10,16 @@ class Portfolio:
         self.moneys.extend(moneys)
 
     def evaluate(self, bank: Bank, currency: str):
-        total = 0.0
-        failures = []
+        total = Money(0, currency)
+        failures = ''
         for m in self.moneys:
-            try:
-                total += bank.convert(m, currency).amount
-            except Exception as ex:
-                failures.append(ex)
+            c, k = bank.convert(m, currency)
+            if k is None:
+                total += c
+            else:
+                failures += k if not failures else ',' + k
 
-        if len(failures) == 0:
-            return Money(total, currency)
+        if not failures:
+            return total
 
-        failureMessage = ','.join(f.args[0] for f in failures)
-        raise Exception('Missing exchange rate(s):[' + failureMessage + ']')
+        raise Exception('Missing exchange rate(s):[' + failures + ']')
